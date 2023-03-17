@@ -1,0 +1,9 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "uni-nav-bar": "/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-nav-bar",
+    "uni-chat-detail": "/components/uni-chat-detail/uni-chat-detail",
+    "u-notify": "/uni_modules/uview-ui/components/u-notify/u-notify",
+    "u-toast": "/uni_modules/uview-ui/components/u-toast/u-toast"
+  }
+}

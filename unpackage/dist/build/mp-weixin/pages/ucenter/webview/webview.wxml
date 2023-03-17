@@ -1,0 +1,1 @@
+<web-view allow="{{true}}" fullscreen="{{true}}" src="{{url}}"></web-view>

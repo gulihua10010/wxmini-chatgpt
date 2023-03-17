@@ -1,0 +1,12 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "uni-nav-bar": "/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-nav-bar",
+    "uni-forms": "/uni_modules/uni-forms/components/uni-forms/uni-forms",
+    "uni-forms-item": "/uni_modules/uni-forms/components/uni-forms-item/uni-forms-item",
+    "uni-easyinput": "/uni_modules/uni-easyinput/components/uni-easyinput/uni-easyinput",
+    "uni-id-pages-agreements": "/uni_modules/uni-id-pages/components/uni-id-pages-agreements/uni-id-pages-agreements",
+    "u-notify": "/uni_modules/uview-ui/components/u-notify/u-notify",
+    "u-toast": "/uni_modules/uview-ui/components/u-toast/u-toast"
+  }
+}

@@ -1,0 +1,99 @@
+@charset "UTF-8";
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+view.data-v-0c6e2509, scroll-view.data-v-0c6e2509, swiper-item.data-v-0c6e2509 {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  flex-grow: 0;
+  flex-basis: auto;
+  align-items: stretch;
+  align-content: flex-start;
+}
+.u-toast__content.data-v-0c6e2509 {
+  display: flex;
+  flex-direction: row;
+  padding: 12px 20px;
+  border-radius: 4px;
+  background-color: #585858;
+  color: #fff;
+  align-items: center;
+  max-width: 600rpx;
+  position: relative;
+}
+.u-toast__content--loading.data-v-0c6e2509 {
+  flex-direction: column;
+  padding: 20px 20px;
+}
+.u-toast__content__text.data-v-0c6e2509 {
+  color: #fff;
+  font-size: 15px;
+  line-height: 15px;
+}
+.u-toast__content__text--default.data-v-0c6e2509 {
+  color: #fff;
+}
+.u-toast__content__text--error.data-v-0c6e2509 {
+  color: #f56c6c;
+}
+.u-toast__content__text--primary.data-v-0c6e2509 {
+  color: #3c9cff;
+}
+.u-toast__content__text--success.data-v-0c6e2509 {
+  color: #5ac725;
+}
+.u-toast__content__text--warning.data-v-0c6e2509 {
+  color: #f9ae3d;
+}
+.u-type-primary.data-v-0c6e2509 {
+  color: #3c9cff;
+  background-color: #ecf5ff;
+  border-color: #d7eafe;
+  border-width: 1px;
+}
+.u-type-success.data-v-0c6e2509 {
+  color: #5ac725;
+  background-color: #dbf1e1;
+  border-color: #BEF5C8;
+  border-width: 1px;
+}
+.u-type-error.data-v-0c6e2509 {
+  color: #f56c6c;
+  background-color: #fef0f0;
+  border-color: #fde2e2;
+  border-width: 1px;
+}
+.u-type-warning.data-v-0c6e2509 {
+  color: #f9ae3d;
+  background-color: #fdf6ec;
+  border-color: #faecd8;
+  border-width: 1px;
+}
+.u-type-default.data-v-0c6e2509 {
+  color: #fff;
+  background-color: #585858;
+}
+

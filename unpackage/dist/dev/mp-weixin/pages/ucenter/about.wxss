@@ -1,0 +1,105 @@
+@charset "UTF-8";
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+view.data-v-7688929f {
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+}
+.about.data-v-7688929f {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.box.data-v-7688929f {
+  margin-top: 60px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.logoImg.data-v-7688929f {
+  margin-bottom: 10rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 15px;
+}
+.pyq.data-v-7688929f {
+  margin-top: 10rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border: none;
+}
+.share-btn.data-v-7688929f {
+  background-color: transparent;
+}
+.share-text.data-v-7688929f {
+  margin: 0;
+  padding: 0;
+  line-height: 30rpx;
+}
+.share-btn.data-v-7688929f::after {
+  border: none;
+}
+.tip.data-v-7688929f {
+  text-align: center;
+  font-size: 24rpx;
+  margin-top: 10px;
+  padding: 10rpx;
+}
+.appName.data-v-7688929f {
+  margin-top: 20px;
+  font-size: 42rpx;
+  font-weight: 500;
+}
+.copyright.data-v-7688929f {
+  font-size: 32rpx;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  bottom: 20px;
+  position: fixed;
+}
+.agreement-box.data-v-7688929f {
+  justify-content: center;
+}
+.agreement.data-v-7688929f {
+  color: #2285ff;
+  font-size: 26rpx;
+}
+.hint.data-v-7688929f {
+  text-align: center;
+  color: #999999;
+  font-size: 26rpx;
+}
+._ul.data-v-7688929f {
+  padding: 0;
+  margin: 0;
+}
+._ul ._li.data-v-7688929f {
+  list-style: none;
+  word-break: break-all;
+}
+

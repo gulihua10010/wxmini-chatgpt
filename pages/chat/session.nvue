@@ -1,0 +1,440 @@
+<template>
+	<view class="">
+		<view class="nvue-page-head" ref="pagehead" id="pagehead">
+			<view class="navbar" ref="navbar">
+				<!--  #ifndef  MP-WEIXIN -->
+				<uni-nav-bar :fixed="false" :status-bar="true" @clickRight="chatWindow('-1','新会话')" loading="loading"
+					:rightIconBool="true" iconFlag="true" right-icon="icon-chat_add" iconSize="22px" height="40px"
+					:title="navTip"></uni-nav-bar>
+				<!--  #endif -->
+				<!--  #ifdef  MP-WEIXIN -->
+				<uni-nav-bar :fixed="false" :leftIconBool="true" iconFlag="true" left-icon="icon-chat_add"
+					loading="loading" iconSize="22px" :status-bar="true" @clickLeft="chatWindow('-1','新会话')"
+					:rightIconBool="true" :title="navTip">
+				</uni-nav-bar>
+				<!--  #endif -->
+			</view>
+		</view>
+		<uni-notice-bar scrollable v-if='isAnno' :text="announcement"></uni-notice-bar>
+		<uni-list :border="false" :style="{'margin-bottom':tabbarHeight+'rpx'}">
+			<!--  #ifdef  APP-PLUS -->
+			<cell>
+				<!--  #endif -->
+				<uni-swipe-action class="swipe-action">
+					<uni-swipe-action-item :threshold="80" :rightOptions="options" v-for="(item, index) in sessionList"
+						:key="index" @click="swipeClick($event,index)">
+
+						<uni-list-chat :arrayIndex="index" :border="true" :title="item.title"
+							avatar="/static/image/ai.png" :clickable="true" badge-positon="left" :note="item.keywords"
+							@click="chatWindow(item.id,item.title)">
+
+							<view class="chat-custom-right">
+								<text
+									class="chat-custom-text">{{$store.state.utils.formatChatTime(item.createTime)}}</text>
+							</view>
+						</uni-list-chat>
+					</uni-swipe-action-item>
+				</uni-swipe-action>
+				<!--  #ifdef  APP-PLUS -->
+			</cell>
+			<!--  #endif -->
+		</uni-list>
+		<view>
+			<u-notify ref="uNotify"></u-notify>
+			<u-toast ref="uToast"></u-toast>
+		</view>
+	</view>
+</template>
+<script>
+	import {
+		mapState
+	} from 'vuex'
+	import searchAnimation from './searchAnimation.js'
+	export default {
+		data() {
+			return {
+				extraIconChat: {
+					color: '#4cd964',
+					size: '44',
+					type: 'chatbubble'
+				},
+				options: [{
+					text: '标为已读',
+					style: {
+						backgroundColor: '#4c4c4c'
+					}
+				}, {
+					text: '删除',
+					style: {
+						backgroundColor: '#fa5151'
+					}
+				}],
+				uid: "",
+				safeBottom: '',
+				tabbarHeight: '',
+				// #ifdef H5
+				dropdownlist: 'padding:10rpx;padding-left: 40rpx;',
+				// #endif
+				// #ifndef H5
+				dropdownlist: 'padding:10rpx;',
+				// #endif
+				isLogin: false,
+				sessionList: [],
+				loading: false,
+				loginType: '',
+				navTip: '会话列表',
+				showDemoTips: true,
+				isDebug: false,
+				isSync: false,
+				isAnno: false,
+				announcement: ''
+
+			}
+		},
+		mixins: [searchAnimation],
+		watch: {
+
+		},
+		onLoad() {
+			let status = uni.getStorageSync('status');
+			if (status) {
+				this.getAnnouncement();
+			} else {
+				this.isAnno = true;
+				this.announcement = '服务器正在维护中~';
+			}
+		},
+		onShareAppMessage(res) {
+			return {
+				title: getApp().globalData.name,
+				path: '/pages/chat/session',
+				imageUrl: '/static/image/share_screen_slot.png'
+			}
+		},
+		
+		onShareTimeline: function (res) {
+		   return {
+		   	title: getApp().globalData.name,
+		   }
+		},
+
+		computed: {
+			...mapState({
+				token: state => state.token,
+			}),
+		},
+		onPullDownRefresh() {
+			if ((this.loginType === 'pwd' || this.loginType === 'token') && this.isSync) {
+				this.getSessionListRes();
+			}
+		},
+		onReachBottom() {
+			// this.getSessionListRes();
+		},
+		onHide() {
+			uni.hideKeyboard();
+		},
+		onUnload() {},
+		onShow() {
+			this.isLogin = uni.getStorageSync('is_login');
+			this.loginType = uni.getStorageSync('login_type');
+			this.isSync = uni.getStorageSync('sync_session');
+			this.sessionList = [];
+
+			this.isDebug = uni.getStorageSync('isDebug');
+			this.getSessionList()
+			if (this.sessionList && this.sessionList.length > 0) {
+				let chatList = uni.getStorageSync('chatList');
+				if (chatList) {
+					for (let i = 0; i < this.sessionList.length; i++) {
+						let id = this.sessionList[i].id;
+						let list = chatList[id]
+						if (!list) {
+							continue;
+						}
+						let keywords = list[list.length - 1].content;
+						if (keywords) {
+							keywords = keywords.replaceAll("\n", "");
+						}
+						this.sessionList[i].keywords = keywords;
+
+					}
+				}
+
+			}
+		},
+		onReady() {
+			this.searchBoxH = (this.systemInfo.windowHeight - this.systemInfo.statusBarHeight - 36 - 12) * 2;
+			this.tabbarHeight = this.systemInfo.windowBottom * 2;
+		},
+		methods: {
+			chatWindow: function(sessionId, name) {
+				let that = this;
+				uni.navigateTo({
+					url: '/pages/chat/chat?id=' + sessionId + "&name=" + name,
+				})
+			},
+			swipeClick: function(e, index) {
+				if (e.index === 1) {
+					try {
+						let key = `chat_sessions_${this.user._id}`
+						var chat_sessions = uni.getStorageSync(key);
+						var toId = chat_sessions[index].id;
+						chat_sessions.splice(index, 1);
+						let chatDetailKey = `chatDetail_${this.user._id}_${toId}`
+						uni.setStorageSync(chatDetailKey, []);
+						uni.setStorageSync(key, chat_sessions);
+					} catch (e) {
+						console.log(e)
+					}
+				} else if (e.index === 0) {
+
+				}
+			},
+			getSessionList: function() {
+				let list = uni.getStorageSync('sessionList');
+				let hasSync = true;
+				if (!list) {
+					list = []
+					hasSync = false;
+				}
+				if (!this.isLogin) {
+					let session = {
+						createTime: (new Date()).getTime(),
+						id: '99999999',
+						title: 'Demo Chat'
+					}
+					list.push(session);
+				}
+				if (this.loginType === 'pwd' || this.loginType === 'token') {
+					if (this.isSync && list.length === 0 && !hasSync) {
+						this.getSessionListRes();
+					}
+					if (this.isSync && list.length > 0) {
+						this.sessionList = list;
+					}
+					if (!this.isSync && list.length > 0) {
+						this.sessionList = list.reverse()
+					}
+					return;
+				}
+				if (this.isDebug || this.loginType === 'api' || !this.isLogin) {
+					this.sessionList = list.reverse()
+				}
+
+			},
+
+
+			getSessionListRes: function() {
+				let that = this;
+				that.loading = true
+				that.navTip = '加载中'
+				uni.showLoading({
+					title: '正在同步会话...'
+				});
+				let header = {};
+				let token = uni.getStorageSync('token')
+				if (token) {
+					header = {
+						"Authorization": "Bearer " + token,
+					};
+				}
+				console.log(">>request sessionList...");
+				uni.request({
+					url: getApp().globalData.server + '/backend-api/conversations',
+					data: {},
+					header: header,
+					success: (res) => {
+						uni.stopPullDownRefresh()
+						uni.hideLoading();
+						that.loading = false
+						if (res.data.status === '000000') {
+							that.navTip = '会话列表'
+							if (res.data.list) {
+								that.sessionList = res.data.list;
+								uni.setStorageSync('sessionList', that.sessionList)
+								return that.showNotify('同步成功!', 'success');
+							}
+						} else {
+							that.navTip = '服务出错'
+							return that.showNotify('服务出错!', 'error');
+						}
+
+					},
+					fail: (res) => {
+						that.loading = false
+						uni.stopPullDownRefresh()
+						that.navTip = '服务出错'
+						uni.hideLoading();
+						return that.showNotify('服务出错!', 'error');
+					}
+				});
+
+
+			},
+
+			getAnnouncement: function() {
+				let that = this;
+				console.log(">>request announcement...");
+				uni.request({
+					url: getApp().globalData.server + '/announcement',
+					data: {},
+					success: (res) => {
+						if (res.data.status === '000000') {
+							let anno = res.data.content;
+							if (anno) {
+								if (anno !== 'null') {
+									that.isAnno = true;
+									that.announcement = anno;
+								} else {
+									that.isAnno = false;
+									that.announcement = '';
+								}
+
+							} else {
+								that.isAnno = false;
+								that.announcement = '';
+							}
+
+						} else {
+							console.log(res.data);
+						}
+					},
+					fail: (res) => {
+						console.log(res);
+					}
+				});
+
+
+			},
+
+			showNotify(title, type) {
+
+				this.$refs.uNotify.show({
+					type: type,
+					message: title,
+					duration: 1000 * 3,
+					safeAreaInsetTop: true
+				})
+			},
+			showToast(msg) {
+
+				this.$refs.uToast.show({
+					message: msg,
+					type: 'error',
+					duration: 2000,
+					position: 'bottom'
+				})
+			}
+
+		}
+	}
+</script>
+
+<style scoped>
+	/* #ifdef H5 */
+	page {
+		background-color: white;
+	}
+
+	/* #endif */
+	.nvue-page-head {
+		background-color: #ededed;
+	}
+
+	.nvue-page-search {
+		width: 750rpx;
+		/* margin-top: -88rpx; */
+	}
+
+	.swipe-action {}
+
+	.navbar {
+		background-color: #ededed;
+	}
+
+	.fixedView {
+		position: fixed;
+		width: 750rpx;
+		height: 60rpx;
+		background-color: transparent;
+	}
+
+	.u-title {
+		font-weight: 400;
+	}
+
+
+	.dropdown {
+		position: fixed;
+		z-index: 10071;
+
+		/*  #ifndef  MP-WEIXIN  */
+		top: 180rpx;
+		right: 20rpx;
+		/*  #endif  */
+
+		/*  #ifdef  MP-WEIXIN  */
+		top: 160rpx;
+		left: 20rpx;
+		/*  #endif  */
+
+
+	}
+
+	.search-label {
+		padding: 20rpx;
+		background-color: #ededed;
+	}
+
+	.search-label-text {
+		font-size: 30rpx;
+	}
+
+	.item {
+		padding: 20rpx;
+		flex-direction: row;
+	}
+
+	.avatar {
+		width: 100rpx;
+
+		height: 100rpx;
+		margin-right: 20rpx;
+		border-radius: 12rpx;
+		position: relative;
+	}
+
+	.title-wrap {
+		flex-direction: column;
+		flex: 1;
+	}
+
+	.cell {
+		flex-direction: row;
+		padding-top: 4rpx;
+		padding-bottom: 20rpx;
+	}
+
+	.chat-time {
+		font-size: 24rpx;
+		color: #c7c7c7;
+		position: absolute;
+		right: 24rpx;
+	}
+
+	.chat-custom-text {
+		font-size: 24rpx;
+		color: #999;
+	}
+
+	.dropdown-list {
+		background-color: #4c4c4c !important;
+		border-radius: 10rpx;
+	}
+</style>
+<style>
+	.uni-navbar__header-btns .uni-icons {
+		font-size: 20px !important;
+	}
+</style>

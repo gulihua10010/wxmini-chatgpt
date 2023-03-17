@@ -1,0 +1,1191 @@
+<template>
+	<view>
+		<view class="navbar" ref="navbar">
+			<uni-nav-bar :status-bar="true" :leftIconBool="true" @clickLeft="$store.state.utils.back()" left-icon="back"
+				:title="navTip" :moveRightBtn="isWxapp" background-color="#e3e3e3">
+			</uni-nav-bar>
+		</view>
+		<scroll-view :animation="scrollAnimationData" ref="scrollview" @click="hideKey" scroll-y="true"
+			:scroll-top="scrollTop" class="scroll-view" :style="chatBodyBottom" :scroll-with-animation="false">
+			<view class="scroll-view-content">
+				<!--  #ifdef  APP-NVUE -->
+
+				<refresh class="refresh" @refresh="onrefresh" @pullingdown="onpullingdown"
+					:display="refreshing ? 'show' : 'hide'">
+					<text class="indicator-text">加载中 ...</text>
+					<loading-indicator class="indicator"></loading-indicator>
+				</refresh>
+				<!--  #endif -->
+				<view class="" v-for="(item,index) in msgList" :key="index" :id="'chatId_'+index">
+					<uni-chat-detail :list="msgList" :item="item" v-if="item.content.trim() !== ''" :index="index">
+					</uni-chat-detail>
+				</view>
+			</view>
+		</scroll-view>
+
+		<view ref="foot" :animation="footAnimationData" class="flex-column-center"
+			:style="'bottom:'+ KeyboardHeight +'rpx;'">
+
+			<view id="bottomfoot" class="bottom-foot-char flex-row-around" style="font-size: 55rpx;" ref="moreMenu">
+				<!--  #ifndef  H5 -->
+				<image class="tb-nv" src="../../static/image/keyboard.png" mode="aspectFit"
+					style="margin-left: 20rpx;margin-right: 20rpx;"></image>
+				<!--  #endif -->
+				<input v-model="msg" :focus="focus" @focus="inputFocus" :confirm-hold="true" :adjust-position="false"
+					:placeholder=placeholder class="dh-input" type="text" @confirm="sendMsg" confirm-type="send"
+					style="margin-right: 20rpx;" maxlength="2000" />
+				<button size="mini" type="default" @click="sendMsg"
+					style="background-color: #04BE02;border-color: #04BE02;height: 70rpx;padding-left: 10rpx;padding-right: 10rpx;margin: 0;"><text
+						style="color:#ffffff;font-size: 30rpx;">发送</text></button>
+			</view>
+		</view>
+		<view class="safeArea" :style="{ height: safeBottom + 'px'}">
+		</view>
+		<view>
+			<u-notify ref="uNotify"></u-notify>
+			<u-toast ref="uToast"></u-toast>
+		</view>
+	</view>
+</template>
+<script>
+	// #ifdef APP-NVUE
+	const BindingX = uni.requireNativePlugin('bindingx');
+	const animation = uni.requireNativePlugin('animation');
+	// #endif
+	import {
+		mapState
+	} from 'vuex'
+	export default {
+		data() {
+			return {
+				systemInfo: uni.getSystemInfoSync(),
+				baseUrl: getApp().globalData.server,
+				toUid: 0,
+				sessionId: '',
+				footAnimationData: {},
+				scrollAnimationData: {},
+				title: '',
+				chatSrcollBottom: 0,
+				KeyboardHeight: 0,
+				safeBottom: 0,
+				adjustPosition: true,
+				msgList: [],
+				msg: "",
+				scrollTop: 0,
+				srcollHeight: 0,
+				chatDetailHeight: 0,
+				willStop: false,
+				initPoint: {
+					identifier: 0,
+					Y: 0
+				},
+				chatDetailBoxMaxWidth: 0,
+				focus: false,
+				refreshing: false,
+				ready: false,
+				isWxapp: false,
+				isLogin: false,
+				loading: false,
+				loginType: '',
+				navTip: '',
+				source: null,
+				parentId: 1,
+				token: '',
+				isDone: true,
+				isFirst: true,
+				scrollTop: 0,
+				fromId: '',
+				toId: '',
+				fromMsg: '',
+				toMsg: '',
+				msgAll: [],
+				ids: [],
+				rememberContext: false,
+				allAI: false,
+				placeholder: '',
+				isStartAllAI: false,
+				sessionId2: '-1',
+				role: 'assistant',
+				parentId2: 1,
+				isDebug: false,
+				imgGen: false,
+				isSync: false,
+				status: true
+			}
+		},
+		destroyed() {
+
+		},
+		onLoad(option) {
+			this.safeBottom = this.systemInfo.safeAreaInsets.bottom > 0 ? this.systemInfo.safeAreaInsets.bottom : 0;
+			// this.KeyboardHeight = this.safeBottom * 2;
+			this.sessionId = option.id;
+			this.title = option.name;
+			this.navTip = option.name;
+			this.chatDetailBoxMaxWidth = this.systemInfo.screenWidth - 110;
+			this.isLogin = uni.getStorageSync('is_login');
+			this.loginType = uni.getStorageSync('login_type');
+			this.status = uni.getStorageSync('status');
+		},
+		onShow() {
+			// #ifndef  APP-NVUE
+			this.isWxapp = true;
+			// #endif
+			this.onKeyboardHeight();
+			this.safeBottom = this.systemInfo.safeAreaInsets.bottom > 0 ? this.systemInfo.safeAreaInsets.bottom : 0;
+			// this.KeyboardHeight = this.safeBottom * 2;
+			this.srcollHeight = this.systemInfo.screenHeight - this.systemInfo.statusBarHeight - 25 - this.safeBottom - 55;
+			// #ifdef  MP-WEIXIN
+			this.srcollHeight = this.systemInfo.screenHeight - this.systemInfo.statusBarHeight - 10 - this.safeBottom - 55;
+			// #endif
+
+			var that = this;
+			this.isLogin = uni.getStorageSync('is_login');
+			this.loginType = uni.getStorageSync('login_type');
+			this.token = uni.getStorageSync('token')
+			this.rememberContext = uni.getStorageSync('remember_context');
+			let all = uni.getStorageSync('all_ai');
+			if (all === true) {
+				this.allAI = true;
+				this.placeholder = "请输入起始语句";
+			}
+			uni.$on('onMessage', this.onMessage)
+			this.isDebug = uni.getStorageSync('isDebug');
+			let gen = uni.getStorageSync('ai_gen_img');
+			if (gen === true) {
+				this.imgGen = true;
+				this.placeholder = "请输入图片描述";
+			}
+			this.isSync = uni.getStorageSync('sync_session');
+			this.status = uni.getStorageSync('status');
+			this.getChatList();
+			// uni.removeStorageSync('chatList');
+		},
+		onReady() {
+			this.scrollToBottom();
+			this.ready = true;
+		},
+		onShareAppMessage(res) {
+			return {
+				title: getApp().globalData.name,
+				path: '/pages/chat/session',
+				imageUrl: '/static/image/share_screen_slot.png'
+			}
+		},
+
+		onShareTimeline: function(res) {
+			return {
+				title: getApp().globalData.name,
+			}
+		},
+		onPullDownRefresh() {
+			// this.getSessionListRes();
+		},
+		computed: {
+			chatBodyBottom() {
+				return `height:${this.srcollHeight}px;`
+			},
+		},
+		onHide() {
+
+		},
+		methods: {
+			onMessage: function(message) {
+				// console.log(JSON.stringify(message));
+				if (message.conversationId !== this.sessionId) {
+					return;
+				}
+				this.isDone = message.isDone;
+				if (this.allAI && this.isStartAllAI) {
+					message.isSend = this.role === 'user'
+				}
+				let that = this;
+				if (!message.isDone) {
+					if (message.isSuccess && message.id) {
+						if (this.ids.indexOf(message.id) === -1) {
+							this.msgList.push(message)
+							this.ids.push(message.id);
+							this.navTip = '正在打字中...'
+							this.toId = message.id
+							if (this.allAI && this.isStartAllAI) {
+								if (this.role === 'user') {
+									this.parentId2 = message.id;
+								} else {
+									this.parentId = message.id;
+								}
+							} else {
+								this.parentId = message.id;
+							}
+
+						} else {
+							for (let i = this.msgList.length - 1; i >= 0; i--) {
+								let msg = this.msgList[i];
+								if (msg.id === message.id) {
+									msg.content = message.content;
+									msg.html = message.html;
+									this.toMsg = msg.content;
+									break;
+								}
+							}
+						}
+					} else {
+						//错误消息
+						if (!message.isSuccess) {
+							//错误消息
+							this.msgList.push(message)
+							if (this.allAI && this.isStartAllAI) {
+								this.isStartAllAI = false;
+								this.placeholder = "请输入起始语句";
+								this.msg = '';
+								return this.showToast('已停止!', 'success');
+							}
+
+
+						}
+
+					}
+
+
+
+				}
+				if (message.isDone) {
+					this.navTip = this.title
+					if (message.isSuccess && this.toId) {
+						if (this.loginType === 'pwd' || this.loginType === 'token') {
+							// 新会话
+							if (!this.sessionId || this.sessionId == '-1') {
+								this.getSessionListRes(true)
+							} else if (this.allAI && this.sessionId2 == '-1') {
+								if (this.role === 'user') {
+									this.getSessionListRes(false)
+								}
+							}
+
+
+						}
+
+						if (this.allAI && this.isStartAllAI) {
+							setTimeout(function() {
+								that.sendMsg4Ai(that.toMsg)
+							}, 3500);
+
+						}
+					}
+					if (!message.isSuccess) {
+						//错误消息
+						this.msgList.push(message)
+						if (this.allAI && this.isStartAllAI) {
+							this.isStartAllAI = false;
+							this.placeholder = "请输入起始语句";
+							this.msg = '';
+							return this.showToast('已停止!', 'success');
+						}
+					}
+
+				}
+				this.scrollToBottom();
+				this.update2Store();
+			},
+			onKeyboardHeight: function() {
+				uni.onKeyboardHeightChange(res => {
+					this.translatePageTop(res.height);
+					if (this.systemInfo.platform == "android") {
+						if (res.height > 100) {
+							this.chatSrcollBottom = res.height - this.safeBottom;
+							//this.inputScroll();
+							//this.translatePageTop(res.height);
+							// #ifdef  MP-WEIXIN
+							this.KeyboardHeight = this.safeBottom * 2 + 70
+							this.srcollHeight = this.systemInfo.screenHeight - this.systemInfo
+								.statusBarHeight - 10 - this.safeBottom - 100;
+							// #endif
+						} else {
+							this.chatSrcollBottom = 0;
+							// #ifdef  MP-WEIXIN
+							this.KeyboardHeight = this.safeBottom * 2
+							this.srcollHeight = this.systemInfo.screenHeight - this.systemInfo
+								.statusBarHeight - 10 - this.safeBottom - 55;
+							// #endif
+						}
+					} else {
+						if (res.height > 300) {
+
+							this.chatSrcollBottom = res.height - this.safeBottom;
+							//this.translatePageTop(res.height);
+						} else {
+							this.chatSrcollBottom = 0;
+						}
+					}
+					if (res.height === 0) {
+						//this.translatePageBottom();
+						this.focus = false;
+					}
+					this.scrollToBottom();
+				})
+			},
+			onpullingdown: function(event) {
+
+			},
+			translatePageTop: function(h) {
+
+				// #ifndef  APP-NVUE
+				var scrollAnimation = uni.createAnimation({
+					duration: 220,
+					timingFunction: 'ease',
+				})
+
+				var footAnimation = uni.createAnimation({
+					duration: 220,
+					timingFunction: 'ease',
+				})
+				if (h == 0) {
+					scrollAnimation.translateY(-h).step()
+					footAnimation.translateY(-h).step()
+				} else {
+					scrollAnimation.translateY(-h + 34).step()
+					footAnimation.translateY(-h + 34).step()
+				}
+
+
+				this.scrollAnimationData = scrollAnimation.export()
+				this.footAnimationData = footAnimation.export()
+
+				// #endif
+
+				// #ifdef  APP-NVUE
+				let foot = this.getEl(this.$refs.foot);
+				let scrollview = this.getEl(this.$refs.scrollview);
+				h = h - this.safeBottom;
+				animation.transition(scrollview, {
+					styles: {
+						transform: 'translateY(-' + h + ')',
+					},
+					duration: 220, //ms
+					timingFunction: 'linear',
+					needLayout: false,
+					delay: 0 //ms
+				}, function() {
+
+				})
+				animation.transition(foot, {
+					styles: {
+						transform: 'translateY(-' + h + ')',
+					},
+					duration: 220, //ms
+					timingFunction: 'linear',
+					needLayout: false,
+					delay: 0 //ms
+				}, function() {
+
+				})
+				// #endif
+
+
+
+			},
+			inputScroll: function() {
+				let foot = this.getEl(this.$refs.foot);
+				if (this.chatSrcollBottom) {
+					var translateY = -10;
+				} else {
+					var translateY = 0;
+				}
+				let translateFoot = BindingX.bind({
+					eventType: 'timing',
+					exitExpression: 't>1',
+					props: [{
+						element: foot,
+						property: 'transform.translateY',
+						expression: 'easeInOutSine(t,0,' + translateY + ',1)'
+					}]
+				}, (res) => {
+					if (res.state === 'exit') {
+						BindingX.unbind({
+							token: translateFoot
+						})
+					}
+				});
+			},
+			scrollToBottom() {
+				this.$nextTick(() => {
+					uni.createSelectorQuery().in(this).select('.scroll-view-content').boundingClientRect((res) => {
+						let top = res.height - this.srcollHeight;
+						if (top > 0) {
+							this.scrollTop = top;
+						}
+					}).exec()
+				})
+			},
+			//隐藏键盘
+			hideKey: function() {
+				uni.hideKeyboard()
+				this.inputFocus();
+			},
+			//ref
+			getEl: function(el) {
+				if (typeof el === 'string' || typeof el === 'number') return el;
+				if (WXEnvironment) {
+					return el.ref;
+				} else {
+					return el instanceof HTMLElement ? el : el.$el;
+				}
+			},
+			inputFocus: function() {
+				var that = this;
+
+				// #ifndef  APP-NVUE
+
+
+				if (this.showMore) {
+					let move = uni.upx2px(180);
+					var menuAnimation = uni.createAnimation({
+						duration: 220,
+						timingFunction: 'ease',
+					})
+					menuAnimation.translateX(0).step()
+
+					this.showMore = false;
+				}
+
+				// #endif
+
+
+				// #ifdef  APP-NVUE
+				this.adjustPosition = true;
+				if (this.showMore) {
+					let moreMenu = this.getEl(this.$refs.moreMenu);
+					animation.transition(moreMenu, {
+						styles: {
+							transform: 'translateX(0)',
+						},
+						duration: 400, //ms
+						timingFunction: 'linear',
+						needLayout: false,
+						delay: 0 //ms
+					}, function(res) {
+						this.scrollToBottom();
+					})
+					this.showMore = false;
+				}
+				// #endif
+			},
+			sendMsg: function() {
+				if (!this.status) {
+					this.showNotify('服务器正在维护中~', 'error');
+					return;
+				}
+				if (!this.msg || this.msg.trim() === '') {
+					return this.showToast('请输入内容~', 'error');
+				}
+				if (this.allAI) {
+					if (this.isStartAllAI) {
+						if (this.msg === '停止') {
+							this.isStartAllAI = false;
+							this.placeholder = "请输入起始语句";
+							this.msg = '';
+							return this.showToast('停止成功!', 'success');
+
+						} else {
+							return this.showToast('无效输入~', 'error');
+						}
+					}
+
+				}
+				if (!this.isDone) {
+					return this.showToast('还在回答问题呢,不要着急哦~', 'error');
+				}
+
+				let message = {
+					content: this.msg,
+					html: this.msg,
+					isSend: true,
+					isSuccess: true,
+					createTime: (new Date()).getTime(),
+					id: this.$store.state.utils.uuid(),
+					role: "user"
+				}
+				this.fromId = message.id
+				let data = {
+					"authValue": "Bearer " + this.token,
+					"content": message.content,
+					"parentId": this.parentId,
+					"id": message.id
+				};
+				if (!this.isLogin) {
+					data.isDemo = true
+				}
+				if (this.sessionId != '-1') {
+					data.conversationId = this.sessionId;
+				}
+				if (this.loginType === 'api') {
+					data.authType = 'api'
+					let msg_ = {
+						role: 'user',
+						content: this.msg
+					}
+					let msgParam = [];
+					msgParam.push(msg_)
+					data.messages = msgParam;
+				}
+
+				if (this.msg != "") {
+					this.msgList.push(message)
+					if (this.allAI) {
+						this.isStartAllAI = true
+					}
+					if (this.loginType === 'api' || !this.isLogin) {
+						if (this.rememberContext) {
+							data.messages = [];
+							let index = this.msgList.length - 4;
+							if (index < 0) {
+								index = 0;
+							}
+							for (let i = index; i < this.msgList.length; i++) {
+								let msg_ = this.msgList[i]
+								if (msg_.isSuccess && !msg_.isImg) {
+									data.messages.push(msg_)
+								}
+							}
+
+						} else {
+							let msg_ = {
+								role: 'user',
+								content: this.msg
+							}
+							let msgParam = [];
+							msgParam.push(msg_)
+							data.messages = msgParam;
+						}
+						if (this.imgGen) {
+							data.isGenImg = true
+						}
+					}
+					if ((this.isDebug || !this.isLogin || !this.isSync || this.loginType === 'api') && this
+						.sessionId == '-1') {
+						this.sessionId = this.$store.state.utils.uuid();
+						let list = uni.getStorageSync('sessionList');
+						if (!list || list.length === 0) {
+							list = [];
+						}
+						let session = {
+							createTime: (new Date()).getTime(),
+							id: this.sessionId,
+							title: '会话' + (list.length + 1)
+						}
+						if (!this.isDebug && !this.isSync && (this.loginType === 'pwd' || this.loginType ===
+								'token')) {
+							this.sessionId = '-1';
+							session.id = '-1'
+						}
+						list.push(session);
+						uni.setStorageSync('sessionList', list)
+					}
+					data.conversationId = this.sessionId;
+					this.navTip = '正在思考中...'
+					this.isDone = false
+					let that = this;
+					this.update2Store();
+					this.msg = "";
+					getApp().globalData.$socket.sendMessage(JSON.stringify(data), (isSucc, res) => {
+						if (!isSucc) {
+							that.navTip = that.title
+							that.isDone = true
+							that.isStartAllAI = false
+						}
+
+					})
+					this.fromMsg = this.msg;
+
+				}
+				this.scrollToBottom();
+				if (this.allAI && this.isStartAllAI) {
+					this.placeholder = "输入'停止'终止会话";
+				}
+			},
+
+			sendMsg4Ai: function(msg) {
+				if (!msg || msg.trim() === '') {
+					return;
+				}
+				let message = {
+					content: msg,
+					html: msg,
+					isSend: this.role === "user",
+					createTime: (new Date()).getTime(),
+					id: this.$store.state.utils.uuid(),
+					role: this.role
+				}
+
+				let data = {
+					"authValue": "Bearer " + this.token,
+					"content": message.content,
+					"parentId": this.parentId,
+					"id": message.id
+				};
+				if (!this.isLogin) {
+					data.isDemo = true
+				}
+				if (this.role === 'user') {
+					data.conversationId = this.sessionId;
+					data.parentId = this.parentId
+				}
+				if (this.role === 'assistant') {
+					data.conversationId = this.sessionId2;
+					data.parentId = this.parentId2
+				}
+				if (this.loginType === 'api') {
+					data.authType = 'api'
+				}
+				if (msg != "") {
+					if (this.loginType === 'api') {
+						if (this.rememberContext) {
+							data.messages = [];
+							let index = this.msgList.length - 4;
+							if (index < 0) {
+								index = 0;
+							}
+							for (let i = index; i < this.msgList.length; i++) {
+								let msg_ = this.msgList[i]
+								if (msg_.isSuccess && !msg_.isImg) {
+									data.messages.push(msg_)
+								}
+							}
+						} else {
+							let msg_ = {
+								role: 'user',
+								content: msg
+							}
+							let msgParam = [];
+							msgParam.push(msg_)
+							data.messages = msgParam;
+						}
+
+
+					}
+					this.navTip = '正在思考中...'
+					this.isDone = false
+					let that = this;
+					data.conversationId = this.sessionId;
+					getApp().globalData.$socket.sendMessage(JSON.stringify(data), (isSucc, res) => {
+						if (!isSucc) {
+							that.navTip = that.title
+							this.isDone = true
+							that.isStartAllAI = false
+						}
+
+					})
+
+					if (this.role === 'user') {
+						this.role = 'assistant'
+					} else if (this.role === 'assistant') {
+						this.role = 'user'
+					}
+
+				}
+				this.scrollToBottom();
+			},
+			getChatList: function() {
+				if (!this.sessionId || this.sessionId == '-1') {
+					this.parentId = 1;
+					this.msgList = []
+					return;
+				}
+				if (this.sessionId == '99999999') {
+					let message = {
+						content: '你好',
+						html: '你好',
+						isSend: true,
+						createTime: (new Date()).getTime(),
+						id: this.$store.state.utils.uuid(),
+						role: 'user'
+					}
+
+					this.msgList.push(message)
+					message = {
+						content: '您好，这是一条demo消息! 您每天有20次向我提问的机会(基于IP), 登录用户不受此限制。发送 "查询次数" 查询剩余次数, 且用且珍惜!',
+						html: '您好，这是一条demo消息! 您每天有20次向我提问的机会(基于IP), 登录用户不受此限制。发送 "查询次数" 查询剩余次数, 且用且珍惜!',
+						isSend: false,
+						createTime: (new Date()).getTime(),
+						id: this.$store.state.utils.uuid(),
+						role: 'assistant'
+					}
+					this.msgList.push(message)
+					message = {
+						content: '关于请求速率: 为了防止有人恶意请求，服务器增加了会话速率限制20 请求/分钟/IP',
+						html: '关于请求速率: 为了防止有人恶意请求，服务器增加了会话速率限制20 请求/分钟/IP',
+						isSend: false,
+						createTime: (new Date()).getTime(),
+						id: this.$store.state.utils.uuid(),
+						role: 'assistant'
+					}
+					this.msgList.push(message)
+				}
+				let list = [];
+				let chatList = uni.getStorageSync('chatList');
+				if (chatList) {
+					list = chatList[this.sessionId]
+					if (list) {
+						this.msgList.push(...list)
+					}
+				}
+				if (list && list.length > 0) {
+
+					this.parentId = this.msgList[this.msgList.length - 1].id
+
+				}
+				if (!this.isDebug && this.isSync && (!list || list.length === 0) && (this.loginType === 'pwd' || this
+						.loginType ===
+						'token')) {
+					this.getChatListRes();
+				}
+
+			},
+
+			getChatListRes: function() {
+				if (!this.sessionId || this.sessionId == '-1') {
+					this.navTip = ' 新会话'
+					return false;
+				}
+				let that = this;
+				this.loading = true
+				this.navTip = '加载中'
+				uni.showLoading({
+					title: '正在同步消息...'
+				});
+				let header = {};
+				let token = uni.getStorageSync('token')
+				if (token) {
+					header = {
+						"Authorization": "Bearer " + token
+					};
+				}
+				console.log(">>request messageList...");
+				uni.request({
+					url: that.baseUrl + '/backend-api/conversation?id=' + that
+						.sessionId,
+					data: {},
+					header: header,
+					success: (res) => {
+						uni.stopPullDownRefresh()
+						that.loading = false
+						uni.hideLoading();
+						if (res.data.status === '000000') {
+							if (res.data.messageList) {
+								that.navTip = that.title
+								that.msgList = res.data.messageList;
+								that.update2Store()
+								that.parentId = that.msgList[that.msgList.length - 1].id
+							}
+						} else {
+							that.navTip = '服务出错'
+							return that.showNotify('服务出错!', 'error');
+						}
+
+					},
+					fail: (res) => {
+						uni.stopPullDownRefresh()
+						that.navTip = '服务出错'
+						uni.hideLoading();
+						return that.showNotify('服务出错!', 'error');
+					}
+				});
+			},
+
+			update2Store: function() {
+				let chatList = uni.getStorageSync('chatList');
+				if (!chatList) {
+					chatList = {};
+				}
+				chatList[this.sessionId] = this.msgList;
+				uni.setStorageSync('chatList', chatList)
+			},
+
+			moderations: function(id, msg) {
+				let data = {
+					conversationId: this.sessionId,
+					content: msg,
+					id: id
+				}
+				let header = {};
+				let token = uni.getStorageSync('token')
+				if (token) {
+					header = {
+						"Authorization": "Bearer " + token,
+					};
+				}
+				let that = this;
+				uni.request({
+					url: that.baseUrl + '/backend-api/moderation',
+					method: "POST",
+					data: data,
+					header: header,
+					success: (res) => {
+						if (res.data.status !== '000000') {
+							console.log(res.data);
+						}
+					},
+					fail: (res) => {
+						console.log(res.data);
+					}
+				});
+			},
+			getSessionListRes: function(isThisSession) {
+				if (this.isDebug || !(this.loginType === 'pwd' || this.loginType === 'token')) {
+					return;
+				}
+				let that = this;
+				let header = {};
+				let token = uni.getStorageSync('token')
+				if (token) {
+					header = {
+						"Authorization": "Bearer " + token,
+					};
+				}
+				console.log(">>request sessionList...");
+				uni.request({
+					url: that.baseUrl + '/backend-api/conversations',
+					data: {},
+					header: header,
+					success: (res) => {
+						if (res.data.status === '000000') {
+							if (res.data.list) {
+
+								if (isThisSession && (!that.sessionId || that.sessionId == '-1')) {
+									that.sessionId = res.data.list[0].id
+									if (that.isSync) {
+										uni.setStorageSync('sessionList', res.data.list)
+									} else {
+										let list = uni.getStorageSync('sessionList');
+										if (list) {
+											list[list.length - 1].id = that.sessionId
+											uni.setStorageSync('sessionList', list)
+										}
+									}
+									// that.moderations(this.fromId, this.fromMsg);
+									that.genTitle()
+									// that.moderations(this.toId, this.toMsg);
+									that.update2Store()
+
+									// uni.removeStorageSync('sessionList');
+
+								} else if (!isThisSession && that.sessionId2 == '-1') {
+									that.sessionId2 = res.data.list[0].id
+								}
+
+
+							}
+						} else {
+							console.log(res);
+						}
+
+					},
+					fail: (res) => {
+						console.log(res);
+					}
+				});
+
+
+
+			},
+			genTitle: function() {
+				let that = this;
+				let data = {
+					conversationId: this.sessionId,
+					id: this.toId
+				}
+				let header = {};
+				let token = uni.getStorageSync('token')
+				if (token) {
+					header = {
+						"Authorization": "Bearer " + token,
+					};
+				}
+				uni.request({
+					url: that.baseUrl + '/backend-api/gentitle',
+					method: "POST",
+					data: data,
+					header: header,
+					success: (res) => {
+						if (res.data.status === '000000') {
+							if (res.data.title) {
+								that.navTip = res.data.title
+								that.title = res.data.title
+								let list = uni.getStorageSync('sessionList');
+								if (list) {
+									if (that.isSync) {
+										list[0].title = res.data.title
+										uni.setStorageSync('sessionList', list)
+									} else {
+										list[list.length - 1] = that.sessionId
+									}
+								}
+							}
+							// that.getSessionListRes()
+						} else {
+							console.log(res.data);
+						}
+					},
+					fail: (res) => {
+						console.log(res.data);
+					}
+				});
+			},
+
+			showNotify(title, type) {
+
+				this.$refs.uNotify.show({
+					type: type,
+					message: title,
+					duration: 1000 * 3,
+					safeAreaInsetTop: true
+				})
+			},
+			showToast(msg, type) {
+
+				this.$refs.uToast.show({
+					message: msg,
+					type: type,
+					duration: 2000,
+					position: 'bottom'
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.scroll-view {
+		width: 750rpx;
+		background-color: #e3e3e3;
+	}
+
+	.tis {
+		width: 100%;
+		height: 10vw;
+
+		justify-content: center;
+		font-size: 24rpx !important;
+		color: white !important;
+	}
+
+	.ing {
+		width: 100%;
+
+	}
+
+
+	.header-dh {
+		position: fixed;
+		justify-content: flex-end;
+		padding-bottom: 15rpx;
+		width: 750rpx;
+		background-color: #f1f1f1;
+		z-index: 20;
+	}
+
+	.padding-chat {
+		padding: 22rpx;
+	}
+
+	.margin-right {
+		margin-right: 20rpx;
+	}
+
+	.margin-left {
+		margin-left: 20rpx;
+	}
+
+	.padding-left {
+		padding-left: 20rpx;
+	}
+
+	.flex-column-start {
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.flex-row-around {
+		flex-direction: row;
+		justify-content: space-around;
+		align-items: center;
+	}
+
+	.flex-row-between {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.status_bar-fixed {
+		width: 750rpx;
+		background-color: #f1f1f1;
+		z-index: 20;
+	}
+
+	.center-box {
+		width: 720rpx;
+		padding-left: 25rpx;
+	}
+
+	.dh-input {
+		font-size: 30rpx;
+		/* #ifdef H5 */
+		width: 610rpx;
+		/* #endif */
+		/* #ifndef H5 */
+		width: 560rpx;
+		/* #endif */
+		height: 70rpx;
+		border-radius: 10rpx;
+		padding-left: 15rpx;
+		background-color: #FFFFFF;
+		/* #ifdef H5 */
+		margin-left: 40rpx;
+		/* #endif */
+
+
+
+	}
+
+	.tb-nv {
+		width: 50rpx;
+		height: 50rpx;
+	}
+
+	.wid {
+		width: 480rpx;
+	}
+
+	.box-normal {
+		width: 750rpx;
+		height: 0;
+		background-color: #FFFFFF;
+	}
+
+	.flex-row-around {
+		flex-direction: row;
+		justify-content: space-around;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	.tb-text {
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.flex-column-center {
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		position: fixed !important;
+		background-color: #f3f3f3;
+		border-radius: 10rpx;
+		z-index: 9999999;
+		width: 100%;
+		/* #ifndef APP-NVUE */
+		padding-bottom: constant(safe-area-inset-bottom);
+		padding-bottom: env(safe-area-inset-bottom);
+		/* #endif */
+
+	}
+
+	.safeArea {
+		width: 750rpx;
+		position: fixed;
+		bottom: 0px;
+		background-color: #f3f3f3;
+	}
+
+	.padding-top {
+		padding-top: 10rpx;
+	}
+
+	.padding-right {
+		padding-right: 20rpx;
+	}
+
+	.justify-end {
+		flex-direction: row-reverse;
+	}
+
+	.nv-chat {
+		flex-wrap: wrap-reverse;
+	}
+
+	.nv-row {
+		flex-direction: row
+	}
+
+	.nv-rowever {
+		flex-direction: row-reverse
+	}
+
+	.white-bg {
+		background-color: #95eb67;
+	}
+
+	.gr-bg {
+		background-color: #ffffff;
+	}
+
+	.long-text {
+		color: #ffffff;
+		font-size: 28rpx;
+		padding: 8 20rpx;
+	}
+
+
+	.chat-time {
+		text-align: center;
+		padding-top: 18rpx;
+		font-size: 28rpx;
+		color: #8f8f8f;
+		margin-bottom: 20rpx;
+	}
+
+	.system-msg {
+		text-align: center;
+		padding-top: 18rpx;
+		font-size: 24rpx;
+		color: #8f8f8f;
+	}
+
+	.ing {
+		top: 50rpx;
+		position: absolute;
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.scroll-view_H {
+		flex-direction: row;
+		padding-top: 60rpx;
+		padding-bottom: 60rpx;
+		height: 380rpx;
+		width: 750rpx;
+		flex-wrap: wrap;
+	}
+
+	.refresh {
+		width: 750rpx;
+		align-items: center;
+	}
+
+	.indicator-text {
+		color: #888888;
+		text-align: center;
+		font-size: 28rpx;
+		margin-bottom: 10rpx;
+	}
+
+	.indicator {
+		padding-top: 2rpx;
+		padding-bottom: 32rpx;
+		height: 60rpx;
+		width: 60rpx;
+		color: #888888;
+	}
+</style>

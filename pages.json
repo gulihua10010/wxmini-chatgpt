@@ -1,0 +1,140 @@
+{
+	"pages": [{
+			"path": "pages/chat/session",
+			"style": {
+				// #ifndef APP-PLUS
+				"enablePullDownRefresh": true,
+				// #endif
+				"navigationStyle": "custom"
+			}
+		}, {
+			"path": "pages/chat/chat",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ucenter/ucenter",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ucenter/notice",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ucenter/webview/webview",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ucenter/about",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ucenter/problem",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+
+		{
+			"path": "pages/ucenter/login-withpwd",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		
+		{
+			"path": "pages/ucenter/login-withapi",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		
+		{
+			"path": "pages/ucenter/login-withtoken",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ucenter/advance",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		
+		{
+			"path": "pages/ucenter/fetch-token",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		
+		
+		{
+			"path": "pages/ucenter/gen-apikey",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/ucenter/link",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		}
+	],
+	"globalStyle": {
+		// #ifdef H5
+		"h5": {
+			"titleNView": false
+		},
+		// #endif
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-starter",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#F8F8F8",
+		"enablePullDownRefresh": false,
+		// "maxWidth":375,
+		"rpxCalcMaxDeviceWidth": 375,
+		"rpxCalcBaseDeviceWidth": 375
+		// "rpxCalcIncludeWidth":0
+	},
+	"condition": {
+		"list": [{
+				"path": "pages/list/detail"
+			}, {
+				"path": "pages/list/list"
+			},
+			{
+				"path": "pages/ucenter/settings/settings"
+			}
+		],
+		"current": 1
+	},
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#04BE02",
+		"borderStyle": "black",
+		"backgroundColor": "#FFFFFF",
+		"list": [{
+			"pagePath": "pages/chat/session",
+			"iconPath": "static/image/chat.png",
+			"selectedIconPath": "static/image/chat_on.png",
+			"text": "聊天"
+		}, {
+			"pagePath": "pages/ucenter/ucenter",
+			"iconPath": "static/image/my.png",
+			"selectedIconPath": "static/image/my_on.png",
+			"text": "我的"
+		}]
+	}
+}

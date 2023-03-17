@@ -1,0 +1,49 @@
+{
+  "pages": [
+    "pages/chat/session",
+    "pages/chat/chat",
+    "pages/ucenter/ucenter",
+    "pages/ucenter/notice",
+    "pages/ucenter/webview/webview",
+    "pages/ucenter/about",
+    "pages/ucenter/problem",
+    "pages/ucenter/login-withpwd",
+    "pages/ucenter/login-withapi",
+    "pages/ucenter/login-withtoken",
+    "pages/ucenter/advance",
+    "pages/ucenter/fetch-token",
+    "pages/ucenter/gen-apikey",
+    "pages/ucenter/link"
+  ],
+  "subPackages": [],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-starter",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F8F8F8",
+    "enablePullDownRefresh": false,
+    "rpxCalcMaxDeviceWidth": 375,
+    "rpxCalcBaseDeviceWidth": 375
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#04BE02",
+    "borderStyle": "black",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/chat/session",
+        "iconPath": "static/image/chat.png",
+        "selectedIconPath": "static/image/chat_on.png",
+        "text": "聊天"
+      },
+      {
+        "pagePath": "pages/ucenter/ucenter",
+        "iconPath": "static/image/my.png",
+        "selectedIconPath": "static/image/my_on.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "usingComponents": {}
+}
