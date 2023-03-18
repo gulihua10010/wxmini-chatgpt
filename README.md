@@ -15,8 +15,9 @@
         <img src="https://img.shields.io/badge/uView-2.0-yellow" ></img>
         <img src="https://img.shields.io/badge/HBuilderX-3.6.18-success" ></img>
         <img src="https://img.shields.io/badge/node.js-v16.0.0-ff69b4" ></img>
+</p>
 
-**本项目在微信小程序端已经上线了!小程序搜索【<span style="color:#04BE02">微 AI 聊天</span>】，认准这个logo图标就可以了，欢迎体验~**
+**本项目在微信小程序端已经上线了!小程序搜索【<span style="color:#04BE02">*微 AI 聊天*</span>】，认准这个logo图标就可以了，欢迎体验~**
 
 ## 项目介绍
 
