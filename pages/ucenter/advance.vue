@@ -17,7 +17,6 @@
 					全 AI 对话指的是，你只需要输入一个起始语句，剩下的都交给 AI 吧，让 AI 与 AI 聊天!
 					您可以输入"停止"指令 停止对话。<br>
 					注意: 在停止之前，你输入的任何语句都是无效的。<br>
-					如果你使用的是 API，这将很容易消耗账户的token值。
 
 				</view>
 			</view>
@@ -27,9 +26,6 @@
 					<view class="uni-list-cell-db">记住上下文</view>
 					<switch class="switch" :checked='rememberContext' @change="switchChange2" />
 				</view>
-				<view class="tips">
-					只对 API 模式有效
-				</view>
 			</view>
 			<view class="divider" v-if="!isDebug" />
 			<view class="container" v-if="!isDebug">
@@ -38,7 +34,7 @@
 					<switch class="switch" :checked='imgGen' @change="switchChange3" />
 				</view>
 				<view class="tips">
-					只对 API 模式有效, 图片文件将在一天后从服务器上删除, 长按图片可以保存
+					图片文件将在一天后从服务器上删除, 长按图片可以保存
 
 				</view>
 			</view>
@@ -58,7 +54,7 @@
 		},
 		data() {
 			return {
-				rememberContext: true,
+				rememberContext: false,
 				allAI: false,
 				isLogin: false,
 				isDebug: false,
@@ -82,9 +78,9 @@
 		},
 		methods: {
 			switchChange1: function(e) {
-				if (!this.isLogin) {
-					return this.showToast('仅登录可用~');
-				}
+				// if (!this.isLogin) {
+				// 	return this.showToast('仅登录可用~');
+				// }
 
 				if (e.detail.value && this.imgGen) {
 					this.allAI = false
@@ -94,23 +90,23 @@
 				uni.setStorageSync('all_ai', e.detail.value)
 			},
 			switchChange2: function(e) {
-				if (!this.isLogin) {
-					return this.showToast('仅登录可用~');
-				}
-				if (this.loginType !== 'api') {
-					return this.showToast('仅配置API可用~');
-				}
+				// if (!this.isLogin) {
+				// 	return this.showToast('仅登录可用~');
+				// }
+				// if (this.loginType !== 'api') {
+				// 	return this.showToast('仅配置API可用~');
+				// }
 				this.rememberContext = e.detail.value
 				uni.setStorageSync('remember_context', e.detail.value)
 
 			},
 			switchChange3: function(e) {
-				if (!this.isLogin) {
-					return this.showToast('仅登录可用~');
-				}
-				if (this.loginType !== 'api') {
-					return this.showToast('仅配置API可用~');
-				}
+				// if (!this.isLogin) {
+				// 	return this.showToast('仅登录可用~');
+				// }
+				// if (this.loginType !== 'api') {
+				// 	return this.showToast('仅配置API可用~');
+				// }
 				if (e.detail.value && this.allAI) {
 					this.imgGen = false
 					return this.showToast('全 AI对话模式下不支持开启此选项');

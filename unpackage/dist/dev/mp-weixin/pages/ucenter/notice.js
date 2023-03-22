@@ -202,27 +202,6 @@ exports.default = void 0;
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 var _default = {
   onLoad: function onLoad() {},
   computed: {},
@@ -232,7 +211,7 @@ var _default = {
       weixin: "微信",
       client: "微信小程序",
       appName: getApp().globalData.name,
-      validTime: "2023-03-09",
+      validTime: "2023-03-21",
       isDebug: false
     };
   },

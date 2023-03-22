@@ -1,7 +1,7 @@
 {
 	"id": "wxmini-chatai",
 	"displayName": "uni-starter",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"description": "AI 聊天 工具",
 	"keywords": [
 		"chatai",

@@ -222,14 +222,14 @@ var _default = {
         }
       });
     },
-    longpress: function longpress(content) {
+    longpress: function longpress(url) {
       var that = this;
       uni.showModal({
         title: '提示',
         content: '你确定要保存到本地吗?',
         success: function success(res) {
           if (res.confirm) {
-            that.saveImage(content);
+            that.saveImage(url);
           }
         }
       });

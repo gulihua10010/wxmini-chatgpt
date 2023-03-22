@@ -23,7 +23,7 @@
 
 1. 本项目是基于uni-app开发，使用websocket方式 与服务端进行通信，异步响应无需等待! 支持记住上下文的连续对话，全AI对话和AI生成图片。
    可以通过账号密码、token(感谢[acheong08](https://github.com/acheong08/ChatGPT)提供的代理) 方式，以及 API-Key 方式登录，其中
-   **账号密码、token方式**有被<span style='color:red'>**永久封禁账号**</span>的风险，不建议使用!!!
+   **账号密码、token方式**有被<span style='color:red'>**永久封禁账号**</span>的风险，不建议使用，多个API Key在同一IP地址的服务器请求也有被封号的几率!!!
 2. 支持生成的文本复制，图片保存至相册
 3. 仿微信聊天 UI
 4. 界面干净整洁无广告

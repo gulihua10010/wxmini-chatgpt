@@ -5,12 +5,12 @@
 				<!--  #ifndef  MP-WEIXIN -->
 				<uni-nav-bar :fixed="false" :status-bar="true" @clickRight="chatWindow('-1','新会话')" loading="loading"
 					:rightIconBool="true" iconFlag="true" right-icon="icon-chat_add" iconSize="22px" height="40px"
-					:title="navTip"></uni-nav-bar>
+					:title="navTip" showStatus="true" :status="socketStatus"></uni-nav-bar>
 				<!--  #endif -->
 				<!--  #ifdef  MP-WEIXIN -->
 				<uni-nav-bar :fixed="false" :leftIconBool="true" iconFlag="true" left-icon="icon-chat_add"
 					loading="loading" iconSize="22px" :status-bar="true" @clickLeft="chatWindow('-1','新会话')"
-					:rightIconBool="true" :title="navTip">
+					:rightIconBool="true" :title="navTip" showStatus="true" :status="socketStatus">
 				</uni-nav-bar>
 				<!--  #endif -->
 			</view>
@@ -29,8 +29,11 @@
 							@click="chatWindow(item.id,item.title)">
 
 							<view class="chat-custom-right">
-								<text
+								<text v-if="!item.updateTime"
 									class="chat-custom-text">{{$store.state.utils.formatChatTime(item.createTime)}}</text>
+								<text v-else
+									class="chat-custom-text">{{$store.state.utils.formatChatTime(item.updateTime)}}</text>
+
 							</view>
 						</uni-list-chat>
 					</uni-swipe-action-item>
@@ -87,7 +90,8 @@
 				isDebug: false,
 				isSync: false,
 				isAnno: false,
-				announcement: ''
+				announcement: '',
+				socketStatus:false
 
 			}
 		},
@@ -111,11 +115,11 @@
 				imageUrl: '/static/image/share_screen_slot.png'
 			}
 		},
-		
-		onShareTimeline: function (res) {
-		   return {
-		   	title: getApp().globalData.name,
-		   }
+
+		onShareTimeline: function(res) {
+			return {
+				title: getApp().globalData.name,
+			}
 		},
 
 		computed: {
@@ -140,8 +144,9 @@
 			this.loginType = uni.getStorageSync('login_type');
 			this.isSync = uni.getStorageSync('sync_session');
 			this.sessionList = [];
-
+			uni.$on('onStatus', this.onStatus);
 			this.isDebug = uni.getStorageSync('isDebug');
+			this.socketStatus = getApp().globalData.$socket && getApp().globalData.$socket.isOnline
 			this.getSessionList()
 			if (this.sessionList && this.sessionList.length > 0) {
 				let chatList = uni.getStorageSync('chatList');
@@ -155,6 +160,9 @@
 						let keywords = list[list.length - 1].content;
 						if (keywords) {
 							keywords = keywords.replaceAll("\n", "");
+						}
+						if(list[list.length - 1].isImg){
+							keywords="[图片]"
 						}
 						this.sessionList[i].keywords = keywords;
 
@@ -173,6 +181,10 @@
 				uni.navigateTo({
 					url: '/pages/chat/chat?id=' + sessionId + "&name=" + name,
 				})
+			}
+			,
+			onStatus:function(status){
+				this.socketStatus = status;
 			},
 			swipeClick: function(e, index) {
 				if (e.index === 1) {
@@ -204,22 +216,22 @@
 						id: '99999999',
 						title: 'Demo Chat'
 					}
-					list.push(session);
+					this.sessionList.push(session);
 				}
 				if (this.loginType === 'pwd' || this.loginType === 'token') {
 					if (this.isSync && list.length === 0 && !hasSync) {
 						this.getSessionListRes();
 					}
 					if (this.isSync && list.length > 0) {
-						this.sessionList = list;
+						this.sessionList = list.sort(this.sort);
 					}
 					if (!this.isSync && list.length > 0) {
-						this.sessionList = list.reverse()
+						this.sessionList = list.sort(this.sort);
 					}
 					return;
 				}
 				if (this.isDebug || this.loginType === 'api' || !this.isLogin) {
-					this.sessionList = list.reverse()
+					this.sessionList.push(...list.sort(this.sort))
 				}
 
 			},
@@ -307,7 +319,11 @@
 
 
 			},
-
+			sort: function(a, b) {
+				let timeA = !a.updateTime ? a.createTime : a.updateTime;
+				let timeB = !b.updateTime ? b.createTime : b.updateTime;
+				return timeB - timeA;
+			},
 			showNotify(title, type) {
 
 				this.$refs.uNotify.show({

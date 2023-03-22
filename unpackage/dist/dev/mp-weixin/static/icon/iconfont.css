@@ -14,6 +14,42 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-dian:before {
+  content: "\e62c";
+}
+
+.icon-dian1:before {
+  content: "\e609";
+}
+
+.icon-dian2:before {
+  content: "\ec1e";
+}
+
+.icon-dian3:before {
+  content: "\e7a5";
+}
+
+.icon-luyin:before {
+  content: "\e602";
+}
+
+.icon-circle:before {
+  content: "\e64f";
+}
+
+.icon-shixinyuanxing:before {
+  content: "\e608";
+}
+
+.icon-tx-fill-yuanxing:before {
+  content: "\e64d";
+}
+
+.icon-radio-on-full:before {
+  content: "\ea6a";
+}
+
 .icon-fenxiang:before {
   content: "\e601";
 }

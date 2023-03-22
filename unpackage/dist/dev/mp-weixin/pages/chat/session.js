@@ -153,10 +153,16 @@ var render = function () {
   var _c = _vm._self._c || _h
   var l0 = _vm.__map(_vm.sessionList, function (item, index) {
     var $orig = _vm.__get_orig(item)
-    var g0 = _vm.$store.state.utils.formatChatTime(item.createTime)
+    var g0 = !item.updateTime
+      ? _vm.$store.state.utils.formatChatTime(item.createTime)
+      : null
+    var g1 = !!item.updateTime
+      ? _vm.$store.state.utils.formatChatTime(item.updateTime)
+      : null
     return {
       $orig: $orig,
       g0: g0,
+      g1: g1,
     }
   })
   _vm.$mp.data = Object.assign(
@@ -207,6 +213,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ 18));
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ 11));
 var _vuex = __webpack_require__(/*! vuex */ 47);
 var _searchAnimation = _interopRequireDefault(__webpack_require__(/*! ./searchAnimation.js */ 186));
@@ -244,7 +251,8 @@ var _default = {
       isDebug: false,
       isSync: false,
       isAnno: false,
-      announcement: ''
+      announcement: '',
+      socketStatus: false
     };
   },
   mixins: [_searchAnimation.default],
@@ -292,7 +300,9 @@ var _default = {
     this.loginType = uni.getStorageSync('login_type');
     this.isSync = uni.getStorageSync('sync_session');
     this.sessionList = [];
+    uni.$on('onStatus', this.onStatus);
     this.isDebug = uni.getStorageSync('isDebug');
+    this.socketStatus = getApp().globalData.$socket && getApp().globalData.$socket.isOnline;
     this.getSessionList();
     if (this.sessionList && this.sessionList.length > 0) {
       var chatList = uni.getStorageSync('chatList');
@@ -306,6 +316,9 @@ var _default = {
           var keywords = list[list.length - 1].content;
           if (keywords) {
             keywords = keywords.replaceAll("\n", "");
+          }
+          if (list[list.length - 1].isImg) {
+            keywords = "[图片]";
           }
           this.sessionList[i].keywords = keywords;
         }
@@ -322,6 +335,9 @@ var _default = {
       uni.navigateTo({
         url: '/pages/chat/chat?id=' + sessionId + "&name=" + name
       });
+    },
+    onStatus: function onStatus(status) {
+      this.socketStatus = status;
     },
     swipeClick: function swipeClick(e, index) {
       if (e.index === 1) {
@@ -351,22 +367,23 @@ var _default = {
           id: '99999999',
           title: 'Demo Chat'
         };
-        list.push(session);
+        this.sessionList.push(session);
       }
       if (this.loginType === 'pwd' || this.loginType === 'token') {
         if (this.isSync && list.length === 0 && !hasSync) {
           this.getSessionListRes();
         }
         if (this.isSync && list.length > 0) {
-          this.sessionList = list;
+          this.sessionList = list.sort(this.sort);
         }
         if (!this.isSync && list.length > 0) {
-          this.sessionList = list.reverse();
+          this.sessionList = list.sort(this.sort);
         }
         return;
       }
       if (this.isDebug || this.loginType === 'api' || !this.isLogin) {
-        this.sessionList = list.reverse();
+        var _this$sessionList;
+        (_this$sessionList = this.sessionList).push.apply(_this$sessionList, (0, _toConsumableArray2.default)(list.sort(this.sort)));
       }
     },
     getSessionListRes: function getSessionListRes() {
@@ -442,6 +459,11 @@ var _default = {
           console.log(res);
         }
       });
+    },
+    sort: function sort(a, b) {
+      var timeA = !a.updateTime ? a.createTime : a.updateTime;
+      var timeB = !b.updateTime ? b.createTime : b.updateTime;
+      return timeB - timeA;
     },
     showNotify: function showNotify(title, type) {
       this.$refs.uNotify.show({

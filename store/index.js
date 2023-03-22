@@ -122,7 +122,7 @@ export default new Vuex.Store({
 			uni.removeStorageSync('chatList');
 			uni.removeStorageSync('login_type');
 			uni.setStorageSync('is_login', false);
-			uni.setStorageSync('remember_context', true);
+			uni.setStorageSync('remember_context', false);
 			uni.setStorageSync('all_ai', false);
 			uni.setStorageSync('ai_gen_img', false);
 			uni.setStorageSync('showDemoTips', true);

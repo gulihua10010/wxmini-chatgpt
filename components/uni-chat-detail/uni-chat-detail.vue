@@ -17,7 +17,7 @@
 							<rich-text v-if="!item.isImg"
 								:style="'font-size: 28rpx;word-wrap: break-word;word-break: break-all; max-width:'+chatDetailBoxMaxWidth+'px'"
 								:nodes="item.html" selectable="true"></rich-text>
-							<image v-else class="chat-img-ai" @longpress="longpress(item.content)" :src="item.content">
+							<image v-else class="chat-img-ai" @longpress="longpress(item.url)" :src="item.url">
 							</image>
 
 						</view>
@@ -90,14 +90,14 @@
 				});
 
 			},
-			longpress: function(content) {
+			longpress: function(url) {
 				let that = this;
 				uni.showModal({
 					title: '提示',
 					content: '你确定要保存到本地吗?',
 					success: function(res) {
 						if (res.confirm) {
-							that.saveImage(content)
+							that.saveImage(url)
 						}
 					}
 				});

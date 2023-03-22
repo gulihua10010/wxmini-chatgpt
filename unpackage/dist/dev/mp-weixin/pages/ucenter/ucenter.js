@@ -234,7 +234,8 @@ var _default = {
       }]],
       isLogin: false,
       user: {},
-      show: true
+      show: true,
+      name: getApp().globalData.name
     };
   },
   onLoad: function onLoad() {},
@@ -271,11 +272,12 @@ var _default = {
       }
     },
     login: function login() {
-      if (!this.isLogin) {
-        uni.navigateTo({
-          url: '/pages/ucenter/login-withapi'
-        });
-      }
+      return false;
+      // if (!this.isLogin) {
+      // 	uni.navigateTo({
+      // 		url: '/pages/ucenter/login-withapi'
+      // 	})
+      // }
     },
     logout: function logout() {
       var that = this;

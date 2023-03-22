@@ -110,10 +110,22 @@ page.data-v-4883731c {
   font-size: 24rpx;
   padding-right: 10rpx;
 }
+.box.data-v-4883731c {
+  margin-top: 60px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 .item-footer-badge.data-v-4883731c {
   width: 20rpx;
   height: 20rpx;
   border-radius: 50%;
   background-color: #DD524D;
+}
+.logoImg.data-v-4883731c {
+  margin-bottom: 10rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 15px;
 }
 

@@ -1,7 +1,7 @@
 <template>
 	<view class="center">
 		<view class="userInfo" @click="login">
-			<view class="defaultAvatarUrl" v-if="isLogin">
+			<!-- <view class="defaultAvatarUrl" v-if="isLogin">
 				<i class="iconfont icon-APIguanli" style="font-size: 80rpx;color:#04BE02;"></i>
 			</view>
 			<view class="defaultAvatarUrl" v-else>
@@ -11,7 +11,13 @@
 			<view class="logo-title">
 				<text class="uer-name" v-if="isLogin">已配置{{!user.email ? '' : user.email}}</text>
 				<text class="uer-name" v-else>未配置</text>
+			</view> -->
+			<view class="defaultAvatarUrl">
+				<image class="logoImg" src="@/static/image/logo.png"></image>
 			</view>
+			<view class="logo-title">
+				<text class="uer-name">{{name}}</text>
+			</view> 
 		</view>
 		<uni-list class="center-list" v-for="(sublist , index) in ucenterList" :key="index">
 			<uni-list-item v-for="(item,i) in sublist" :title="item.title" link :rightText="item.rightText" :key="i"
@@ -83,7 +89,8 @@
 				],
 				isLogin: false,
 				user: {},
-				show: true
+				show: true,
+				name: getApp().globalData.name,
 			}
 		},
 		onLoad() {},
@@ -121,11 +128,12 @@
 				}
 			},
 			login() {
-				if (!this.isLogin) {
-					uni.navigateTo({
-						url: '/pages/ucenter/login-withapi'
-					})
-				}
+				return false;
+				// if (!this.isLogin) {
+				// 	uni.navigateTo({
+				// 		url: '/pages/ucenter/login-withapi'
+				// 	})
+				// }
 			},
 			logout() {
 				let that = this;
@@ -273,6 +281,13 @@
 		padding-right: 10rpx;
 	}
 
+	.box {
+		margin-top: 60px;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
 	.item-footer-badge {
 		width: 20rpx;
 		height: 20rpx;
@@ -283,5 +298,12 @@
 		border-radius: 10rpx;
 		/* #endif */
 		background-color: #DD524D;
+	}
+
+	.logoImg {
+		margin-bottom: 10rpx;
+		width: 160rpx;
+		height: 160rpx;
+		border-radius: 15px;
 	}
 </style>

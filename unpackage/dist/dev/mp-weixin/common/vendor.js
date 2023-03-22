@@ -17259,9 +17259,11 @@ var websocket = /*#__PURE__*/function () {
     this.reconnectClosedTime = 0;
     this.isOpenReconnect = true;
     this.loadFinish = false;
-    this.retryTime = 10;
+    this.retryTime = 30;
+    this.retrySecTime = 2;
     this.isClosed = false;
     this.isError = false;
+    this.timer = null;
     // 获取当前用户相关信息
     var user = uni.getStorageSync('user');
     this.user_token = uni.getStorageSync('token');
@@ -17343,7 +17345,7 @@ var websocket = /*#__PURE__*/function () {
       this.socket.send({
         data: message,
         success: function success() {
-          console.log('success');
+          // console.log('success')
           typeof callback === 'function' && callback(true, message);
         },
         fail: function fail() {
@@ -17359,14 +17361,35 @@ var websocket = /*#__PURE__*/function () {
       this.isOnline = true;
       this.isError = false;
       this.isClosed = false;
+      uni.$emit('onStatus', this.isOnline);
       console.log('websocket连接成功');
       this.isOpenReconnect = true;
+      var that = this;
+      this.timer = setInterval(function () {
+        var data = {
+          heart: 'ping',
+          time: new Date().getTime()
+        };
+        // console.log("ping");
+        that.sendMessage(JSON.stringify(data), function (isSucc, res) {
+          if (!isSucc) {
+            if (that.timer) {
+              clearInterval(that.timer);
+            }
+          }
+        });
+      }, 30000);
     }
   }, {
     key: "onMessage",
     value: function onMessage(message) {
       // console.log(message.data);
-      uni.$emit('onMessage', JSON.parse(message.data));
+      var data = JSON.parse(message.data);
+      if (data.heart !== 'pong') {
+        uni.$emit('onMessage', data);
+      } else {
+        // console.log("pong");
+      }
     }
 
     // 监听关闭
@@ -17377,13 +17400,17 @@ var websocket = /*#__PURE__*/function () {
       this.isOnline = false;
       this.socket = null;
       this.isClosed = true;
+      uni.$emit('onStatus', this.isOnline);
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
       console.log('socket连接已关闭');
       if (this.isOpenReconnect) {
-        console.log("3秒后重新链接");
+        console.log("2秒后重新链接");
         var that = this;
         setTimeout(function () {
           that.reconnect(1);
-        }, 3000);
+        }, this.retrySecTime * 1000);
       }
     }
     // 监听连接错误
@@ -17394,12 +17421,17 @@ var websocket = /*#__PURE__*/function () {
       this.isOnline = false;
       this.socket = null;
       this.isError = true;
+      uni.$emit('onStatus', this.isOnline);
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
       console.log('socket连接错误');
       if (!this.socket && this.isOpenReconnect) {
+        console.log("2秒后重新链接");
         var that = this;
         setTimeout(function () {
           that.reconnect(2);
-        }, 3000);
+        }, this.retrySecTime * 1000);
       }
     }
     // 关闭连接
@@ -17409,8 +17441,12 @@ var websocket = /*#__PURE__*/function () {
       if (this.socket) {
         this.socket.close();
       }
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
       this.isOpenReconnect = false;
       this.isClosed = true;
+      uni.$emit('onStatus', this.isOnline);
     }
   }, {
     key: "initSocketLogin",
@@ -17590,7 +17626,7 @@ var _default = new _vuex.default.Store({
       uni.removeStorageSync('chatList');
       uni.removeStorageSync('login_type');
       uni.setStorageSync('is_login', false);
-      uni.setStorageSync('remember_context', true);
+      uni.setStorageSync('remember_context', false);
       uni.setStorageSync('all_ai', false);
       uni.setStorageSync('ai_gen_img', false);
       uni.setStorageSync('showDemoTips', true);

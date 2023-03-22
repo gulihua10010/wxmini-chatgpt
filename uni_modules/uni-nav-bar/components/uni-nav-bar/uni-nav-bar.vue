@@ -21,7 +21,12 @@
 					<slot>
 						<view class="uni-navbar__header-container-inner" v-if="title.length>0">
 							<text class="uni-nav-bar-text uni-ellipsis-1"
-								:style="{color: themeColor }">{{ title }}</text>
+								:style="{color: themeColor }">{{ title }}
+								<text v-if="showStatus" style="margin-left: 2rpx; font-size: 25px;font-weight: 900;position: relative;top:4px">
+									<text v-if="status" style="color:green">&#8226;</text>
+									<text v-else style="color:red">&#8226;</text>
+								</text>
+								</text>
 						</view>
 					</slot>
 				</view>
@@ -106,6 +111,14 @@
 				default: ""
 			},
 			fixed: {
+				type: [Boolean, String],
+				default: false
+			},
+			status: {
+				type: [Boolean, String],
+				default: false
+			},
+			showStatus: {
 				type: [Boolean, String],
 				default: false
 			},

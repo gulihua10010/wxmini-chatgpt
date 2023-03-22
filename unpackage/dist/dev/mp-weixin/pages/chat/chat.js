@@ -283,6 +283,7 @@ var _vuex = __webpack_require__(/*! vuex */ 47);
 //
 //
 //
+//
 var _default = {
   data: function data() {
     var _ref;
@@ -322,7 +323,7 @@ var _default = {
       token: '',
       isDone: true,
       isFirst: true
-    }, (0, _defineProperty2.default)(_ref, "scrollTop", 0), (0, _defineProperty2.default)(_ref, "fromId", ''), (0, _defineProperty2.default)(_ref, "toId", ''), (0, _defineProperty2.default)(_ref, "fromMsg", ''), (0, _defineProperty2.default)(_ref, "toMsg", ''), (0, _defineProperty2.default)(_ref, "msgAll", []), (0, _defineProperty2.default)(_ref, "ids", []), (0, _defineProperty2.default)(_ref, "rememberContext", false), (0, _defineProperty2.default)(_ref, "allAI", false), (0, _defineProperty2.default)(_ref, "placeholder", ''), (0, _defineProperty2.default)(_ref, "isStartAllAI", false), (0, _defineProperty2.default)(_ref, "sessionId2", '-1'), (0, _defineProperty2.default)(_ref, "role", 'assistant'), (0, _defineProperty2.default)(_ref, "parentId2", 1), (0, _defineProperty2.default)(_ref, "isDebug", false), (0, _defineProperty2.default)(_ref, "imgGen", false), (0, _defineProperty2.default)(_ref, "isSync", false), (0, _defineProperty2.default)(_ref, "status", true), _ref;
+    }, (0, _defineProperty2.default)(_ref, "scrollTop", 0), (0, _defineProperty2.default)(_ref, "fromId", ''), (0, _defineProperty2.default)(_ref, "toId", ''), (0, _defineProperty2.default)(_ref, "fromMsg", ''), (0, _defineProperty2.default)(_ref, "toMsg", ''), (0, _defineProperty2.default)(_ref, "msgAll", []), (0, _defineProperty2.default)(_ref, "ids", []), (0, _defineProperty2.default)(_ref, "rememberContext", false), (0, _defineProperty2.default)(_ref, "allAI", false), (0, _defineProperty2.default)(_ref, "placeholder", ''), (0, _defineProperty2.default)(_ref, "isStartAllAI", false), (0, _defineProperty2.default)(_ref, "sessionId2", '-1'), (0, _defineProperty2.default)(_ref, "role", 'assistant'), (0, _defineProperty2.default)(_ref, "parentId2", 1), (0, _defineProperty2.default)(_ref, "isDebug", false), (0, _defineProperty2.default)(_ref, "imgGen", false), (0, _defineProperty2.default)(_ref, "isSync", false), (0, _defineProperty2.default)(_ref, "status", true), (0, _defineProperty2.default)(_ref, "socketStatus", false), (0, _defineProperty2.default)(_ref, "startInx", 0), _ref;
   },
   destroyed: function destroyed() {},
   onLoad: function onLoad(option) {
@@ -343,6 +344,7 @@ var _default = {
     // this.KeyboardHeight = this.safeBottom * 2;
     this.srcollHeight = this.systemInfo.screenHeight - this.systemInfo.statusBarHeight - 25 - this.safeBottom - 55;
     this.srcollHeight = this.systemInfo.screenHeight - this.systemInfo.statusBarHeight - 10 - this.safeBottom - 55;
+    this.msgList = [];
     var that = this;
     this.isLogin = uni.getStorageSync('is_login');
     this.loginType = uni.getStorageSync('login_type');
@@ -353,6 +355,7 @@ var _default = {
       this.allAI = true;
       this.placeholder = "请输入起始语句";
     }
+    uni.$on('onStatus', this.onStatus);
     uni.$on('onMessage', this.onMessage);
     this.isDebug = uni.getStorageSync('isDebug');
     var gen = uni.getStorageSync('ai_gen_img');
@@ -362,6 +365,7 @@ var _default = {
     }
     this.isSync = uni.getStorageSync('sync_session');
     this.status = uni.getStorageSync('status');
+    this.socketStatus = getApp().globalData.$socket && getApp().globalData.$socket.isOnline;
     this.getChatList();
     // uni.removeStorageSync('chatList');
   },
@@ -437,6 +441,7 @@ var _default = {
               this.isStartAllAI = false;
               this.placeholder = "请输入起始语句";
               this.msg = '';
+              this.update2Store();
               return this.showToast('已停止!', 'success');
             }
           }
@@ -468,12 +473,16 @@ var _default = {
             this.isStartAllAI = false;
             this.placeholder = "请输入起始语句";
             this.msg = '';
+            this.update2Store();
             return this.showToast('已停止!', 'success');
           }
         }
       }
       this.scrollToBottom();
       this.update2Store();
+    },
+    onStatus: function onStatus(status) {
+      this.socketStatus = status;
     },
     onKeyboardHeight: function onKeyboardHeight() {
       var _this = this;
@@ -648,6 +657,7 @@ var _default = {
           this.isStartAllAI = true;
         }
         if (this.loginType === 'api' || !this.isLogin) {
+          data.content = "";
           if (this.rememberContext) {
             data.messages = [];
             var index = this.msgList.length - 4;
@@ -671,7 +681,13 @@ var _default = {
           }
           if (this.imgGen) {
             data.isGenImg = true;
+            data.content = this.msg;
+            data.messages = [];
           }
+        }
+        if (this.isDebug) {
+          data.content = this.msg;
+          data.messages = [];
         }
         if ((this.isDebug || !this.isLogin || !this.isSync || this.loginType === 'api') && this.sessionId == '-1') {
           this.sessionId = this.$store.state.utils.uuid();
@@ -681,6 +697,7 @@ var _default = {
           }
           var session = {
             createTime: new Date().getTime(),
+            updateTime: new Date().getTime(),
             id: this.sessionId,
             title: '会话' + (list.length + 1)
           };
@@ -696,6 +713,7 @@ var _default = {
         this.isDone = false;
         var that = this;
         this.update2Store();
+        this.updateSessionList();
         this.msg = "";
         getApp().globalData.$socket.sendMessage(JSON.stringify(data), function (isSucc, res) {
           if (!isSucc) {
@@ -728,7 +746,8 @@ var _default = {
         "authValue": "Bearer " + this.token,
         "content": message.content,
         "parentId": this.parentId,
-        "id": message.id
+        "id": message.id,
+        isSender: this.role === "user"
       };
       if (!this.isLogin) {
         data.isDemo = true;
@@ -741,11 +760,12 @@ var _default = {
         data.conversationId = this.sessionId2;
         data.parentId = this.parentId2;
       }
-      if (this.loginType === 'api') {
+      if (this.loginType === 'api' || !this.isLogin) {
         data.authType = 'api';
       }
       if (msg != "") {
-        if (this.loginType === 'api') {
+        if (this.loginType === 'api' || !this.isLogin) {
+          data.content = "";
           if (this.rememberContext) {
             data.messages = [];
             var index = this.msgList.length - 4;
@@ -803,41 +823,19 @@ var _default = {
           role: 'user'
         };
         this.msgList.push(message);
-        message = {
-          content: '您好，这是一条demo消息! 您每天有20次向我提问的机会(基于IP), 登录用户不受此限制。发送 "查询次数" 查询剩余次数, 且用且珍惜!',
-          html: '您好，这是一条demo消息! 您每天有20次向我提问的机会(基于IP), 登录用户不受此限制。发送 "查询次数" 查询剩余次数, 且用且珍惜!',
-          isSend: false,
-          createTime: new Date().getTime(),
-          id: this.$store.state.utils.uuid(),
-          role: 'assistant'
-        };
-        this.msgList.push(message);
-        message = {
-          content: '关于请求速率: 为了防止有人恶意请求，服务器增加了会话速率限制20 请求/分钟/IP',
-          html: '关于请求速率: 为了防止有人恶意请求，服务器增加了会话速率限制20 请求/分钟/IP',
-          isSend: false,
-          createTime: new Date().getTime(),
-          id: this.$store.state.utils.uuid(),
-          role: 'assistant'
-        };
-        this.msgList.push(message);
+        this.startInx = this.startInx + 1;
+        this.getDemoChatListRes();
+      } else {
+        this.getChatListFromStore();
       }
-      var list = [];
-      var chatList = uni.getStorageSync('chatList');
-      if (chatList) {
-        list = chatList[this.sessionId];
-        if (list) {
-          var _this$msgList;
-          (_this$msgList = this.msgList).push.apply(_this$msgList, (0, _toConsumableArray2.default)(list));
-        }
-      }
-      if (list && list.length > 0) {
-        this.parentId = this.msgList[this.msgList.length - 1].id;
-      }
-      if (!this.isDebug && this.isSync && (!list || list.length === 0) && (this.loginType === 'pwd' || this.loginType === 'token')) {
-        this.getChatListRes();
-      }
+
+      // if (!this.isDebug && this.isSync && (!list || list.length === 0) && (this.loginType === 'pwd' || this
+      // 		.loginType ===
+      // 		'token')) {
+      // 	this.getChatListRes();
+      // }
     },
+
     getChatListRes: function getChatListRes() {
       if (!this.sessionId || this.sessionId == '-1') {
         this.navTip = ' 新会话';
@@ -885,12 +883,27 @@ var _default = {
         }
       });
     },
+    getChatListFromStore: function getChatListFromStore() {
+      var list = [];
+      var chatList = uni.getStorageSync('chatList');
+      if (chatList) {
+        list = chatList[this.sessionId];
+        if (list) {
+          var _this$msgList;
+          (_this$msgList = this.msgList).push.apply(_this$msgList, (0, _toConsumableArray2.default)(list));
+        }
+      }
+      if (list && list.length > 0) {
+        this.parentId = this.msgList[this.msgList.length - 1].id;
+      }
+      this.scrollToBottom();
+    },
     update2Store: function update2Store() {
       var chatList = uni.getStorageSync('chatList');
       if (!chatList) {
         chatList = {};
       }
-      chatList[this.sessionId] = this.msgList;
+      chatList[this.sessionId] = this.msgList.slice(this.startInx);
       uni.setStorageSync('chatList', chatList);
     },
     moderations: function moderations(id, msg) {
@@ -1011,6 +1024,63 @@ var _default = {
           }
         },
         fail: function fail(res) {
+          console.log(res.data);
+        }
+      });
+    },
+    updateSessionList: function updateSessionList() {
+      if (this.sessionId == '-1' || this.sessionId == '99999999') {
+        return;
+      }
+      var list = uni.getStorageSync('sessionList');
+      if (list && list.length > 0) {
+        for (var i = 0; i < list.length; i++) {
+          var session = list[i];
+          if (session.id === this.sessionId) {
+            session.updateTime = new Date().getTime();
+            break;
+          }
+        }
+        uni.setStorageSync('sessionList', list);
+      }
+    },
+    getDemoChatListRes: function getDemoChatListRes() {
+      var _this4 = this;
+      if (!this.sessionId || this.sessionId == '-1') {
+        this.navTip = ' 新会话';
+        return false;
+      }
+      var that = this;
+      this.loading = true;
+      this.navTip = '加载中';
+      uni.showLoading({
+        title: '加载中...'
+      });
+      console.log(">>request demo messageList...");
+      uni.request({
+        url: that.baseUrl + '/demoChatList',
+        data: {},
+        success: function success(res) {
+          uni.stopPullDownRefresh();
+          that.loading = false;
+          uni.hideLoading();
+          that.navTip = that.title;
+          if (res.data.status === '000000') {
+            if (res.data.messageList && res.data.messageList.length > 0) {
+              var _that$msgList;
+              that.startInx = _this4.startInx + res.data.messageList.length;
+              (_that$msgList = that.msgList).push.apply(_that$msgList, (0, _toConsumableArray2.default)(res.data.messageList));
+            }
+          } else {
+            console.log(res.data);
+          }
+          that.getChatListFromStore();
+        },
+        fail: function fail(res) {
+          uni.stopPullDownRefresh();
+          uni.hideLoading();
+          that.navTip = that.title;
+          that.getChatListFromStore();
           console.log(res.data);
         }
       });

@@ -228,6 +228,14 @@ var _default = {
       type: [Boolean, String],
       default: false
     },
+    status: {
+      type: [Boolean, String],
+      default: false
+    },
+    showStatus: {
+      type: [Boolean, String],
+      default: false
+    },
     iconFlag: {
       type: [Boolean, String],
       default: false

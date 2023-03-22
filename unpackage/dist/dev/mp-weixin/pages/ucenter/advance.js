@@ -219,16 +219,12 @@ exports.default = void 0;
 //
 //
 //
-//
-//
-//
-//
 var _default = {
   onLoad: function onLoad() {},
   computed: {},
   data: function data() {
     return {
-      rememberContext: true,
+      rememberContext: false,
       allAI: false,
       isLogin: false,
       isDebug: false,
@@ -249,9 +245,10 @@ var _default = {
   },
   methods: {
     switchChange1: function switchChange1(e) {
-      if (!this.isLogin) {
-        return this.showToast('仅登录可用~');
-      }
+      // if (!this.isLogin) {
+      // 	return this.showToast('仅登录可用~');
+      // }
+
       if (e.detail.value && this.imgGen) {
         this.allAI = false;
         return this.showToast('AI 生成图片模式下不支持开启此选项');
@@ -260,22 +257,22 @@ var _default = {
       uni.setStorageSync('all_ai', e.detail.value);
     },
     switchChange2: function switchChange2(e) {
-      if (!this.isLogin) {
-        return this.showToast('仅登录可用~');
-      }
-      if (this.loginType !== 'api') {
-        return this.showToast('仅配置API可用~');
-      }
+      // if (!this.isLogin) {
+      // 	return this.showToast('仅登录可用~');
+      // }
+      // if (this.loginType !== 'api') {
+      // 	return this.showToast('仅配置API可用~');
+      // }
       this.rememberContext = e.detail.value;
       uni.setStorageSync('remember_context', e.detail.value);
     },
     switchChange3: function switchChange3(e) {
-      if (!this.isLogin) {
-        return this.showToast('仅登录可用~');
-      }
-      if (this.loginType !== 'api') {
-        return this.showToast('仅配置API可用~');
-      }
+      // if (!this.isLogin) {
+      // 	return this.showToast('仅登录可用~');
+      // }
+      // if (this.loginType !== 'api') {
+      // 	return this.showToast('仅配置API可用~');
+      // }
       if (e.detail.value && this.allAI) {
         this.imgGen = false;
         return this.showToast('全 AI对话模式下不支持开启此选项');

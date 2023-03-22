@@ -15,8 +15,8 @@
 			github: 'https://github.com/gulihua10010/wxmini-**********',
 			blog: 'https://jianwoo.cn',
 			blogDetail: 'https://jianwoo.cn/detail?id=3267583046918340611',
-			server: "http://192.168.0.103:8080/",
-			websocket: "ws://192.168.0.103:8080/"
+            server: "http://192.168.0.103:8080/",
+            websocket: "ws://192.168.0.103:8080/"
 		},
 		onLaunch: function() {
 			console.log('App Launch')
