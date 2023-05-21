@@ -20,7 +20,9 @@
 **项目 2.0 不再开源，有需要的开发者可以通过下方官网的客服进行联系，2.0主要功能也在下方**
 
 **本项目在微信小程序端已经上线了!小程序搜索【<span style="color:#04BE02">*微 AI 聊天*</span>】，认准这个logo图标就可以了，欢迎体验~**
-
+<p align=center>
+  <img src="https://cdn.jianwoo.cn/image/ai/gh_5f16fbb0f72d_1280.jpg" alt="微信小程序" width="200" />
+</p>
 **官网：** https://aiget.cc
 
 ## 项目介绍
@@ -44,7 +46,21 @@
 4. 界面干净整洁无广告
 5. 可打包成小程序/网页H5 app等
 
-## 小程序截图
+## 网站/小程序v2.0截图
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/3D82A132714222A3E4C457D2274AE2C1.jpg" alt="截图" width=300/>
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/3E16264741F7C53487DC1C06BD412D02.jpg" alt="截图" width=300 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/50DFC2AC810ADCE225FBFC3072A668B2.jpg" alt="截图" width=300 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/60BBF63198B9ACEAC31E443B9CA6028B.jpg" alt="截图" width=300 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/8616A257C078175CB0FB8F5E30CD32B6.jpg" alt="截图" width=300 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/CB50B104757B49B4FFF350C88B213D7D.jpg" alt="截图" width=300 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/CE2CAAA5F268B424676A2FBAEE464A86.jpg" alt="截图" width=300 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/F395E9647442FD76467FD386689D03F6.jpg" alt="截图" width=300 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/QQ20230520-0.png" alt="截图" width=500 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/QQ20230520-1.png" alt="截图" width=500 />
+<img src="https://cdn.jianwoo.cn/image/ai/screenslot/QQ20230520-2.png" alt="截图" width=500 />
+
+
+## 小程序v1.0截图
 
 <img src="iShot_2023-03-17_17.33.38.png" alt="截图" width=300/>
 <img src="iShot_2023-03-17_17.32.50.png" alt="截图" width=300 />
