@@ -24,7 +24,7 @@
   <img src="https://cdn.jianwoo.cn/image/ai/gh_5f16fbb0f72d_1280.jpg" alt="微信小程序" width="200" />
 </p>
 
-**官网** https://aiget.cc
+**官网** [https://chat.uyojo.com](https://chat.uyojo.com)
 
 ## 项目介绍
 #### v2.0
